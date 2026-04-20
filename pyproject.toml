@@ -1,0 +1,34 @@
+[build-system]
+requires = ['setuptools', 'wheel', 'setuptools-scm']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name='pagerlib'
+authors = [{name='Kopylov Daniil', email='it-daniil@yandex.ru'}]
+
+readme = 'README.md'
+license = {file = 'LICENSE'}
+
+requires-python = '>=3.9'
+
+dependencies = [
+  'pytesseract',
+  'pdf2image',
+  'numpy',
+  'opencv-python',
+  'matplotlib',
+  'python-docx',
+  'scipy',
+  'scikit-learn',
+  'transformers',
+  'torch',
+  'torch-geometric',
+  'python-multipart',
+  'pdfminer.six==20251107'
+]
+
+version = '0.0.3' 
+
+[tool.setuptools]
+packages = {find = {where = ["src"]}}
+package-dir = {"pagerlib" = "src/pagerlib"}
