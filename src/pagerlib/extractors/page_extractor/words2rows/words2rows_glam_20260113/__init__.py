@@ -2,7 +2,11 @@
 
 from .torch_model import TorchModel
 import torch
-def get_load_model(path, device='cpu'):
+import os 
+
+DIR_MODEL = os.path.dirname(os.path.abspath(__file__))
+PATH_MODEL = os.path.join(DIR_MODEL, 'words2rows_glam_20260113')
+def get_load_model(path=PATH_MODEL, device='cpu'):
     model = TorchModel({
         "sigmoidEdge": True,
         "node_featch": 15,

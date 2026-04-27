@@ -12,7 +12,10 @@ class Words2Rows(BasePageExtractor):
         self.words2rowsGLAM = get_load_model()
 
     def page_extract(self, page:Page):
-        words = [word for region in page.children for row in region.children for word in row.children]
+        text_regions = [region for region in page.children if region.children is not None]
+        no_text_regions = [region for region in page.children if region.children is None]
+        
+        words = [word for region in text_regions for row in region.children for word in row.children]
         words_json = [{"text": word.text,
                  "segment": word.segment.get_segment_2p(),
                 } for word in words]
@@ -23,7 +26,7 @@ class Words2Rows(BasePageExtractor):
             row_list = [Row(children=words)]
         else:
             row_list = self.get_row(words_json, words)
-        page.children = Region(children=row_list)
+        page.children = no_text_regions+[Region(children=row_list)]
 
     def get_row(self, words_json, words):
         graph_dict_torch = self.words2rowsGLAM_tokenizer(words_json)

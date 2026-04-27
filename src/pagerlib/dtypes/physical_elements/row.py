@@ -21,7 +21,8 @@ class Row(PhysicalElement):
             data = word_json["data"] if "data" in word_json else {
                 "text": word_json["text"]
             }
-            word_list.append(Word(segment=self._get_segment(word_json["segment"]), data=data))      
+            word_list.append(Word(segment=self._get_segment(word_json["segment"]), data=data)) 
+        word_list.sort(key=lambda x: x.segment.x_top_left)       
         return word_list 
 
     def __repr__(self):

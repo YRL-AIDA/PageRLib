@@ -12,10 +12,13 @@ class Rows2Regions(BasePageExtractor):
         self.tokenizer = RowGLAMTokenizer()
 
     def page_extract(self, page:Page):
+        text_regions = [region for region in page.children if region.children is not None]
+        no_text_regions = [region for region in page.children if region.children is None]
+        
         rows = [{"text": row.text,
                  "segment": row.segment.get_segment_2p(),
                  "words": [word.to_dict() for word in row.children]
-                } for region in page.children for row in region.children]
+                } for region in text_regions for row in region.children]
         count_rows = len(rows)
         if  count_rows == 0:
             region_list = []
@@ -23,7 +26,7 @@ class Rows2Regions(BasePageExtractor):
             region_list = [Region(children=rows, data={'label': CLASSES[0]})]
         else:
             region_list = self.get_region(rows)
-        page.children = region_list
+        page.children = no_text_regions+region_list
 
 
     def get_region(self, rows_json):

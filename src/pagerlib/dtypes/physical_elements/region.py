@@ -19,6 +19,7 @@ class Region(PhysicalElement):
         row_list =[Row(segment=self._get_segment(dict_segment=dict_row["segment"]), 
                          data=dict_row["data"] if "data" in dict_row else None,
                          children=dict_row["words"]) for dict_row in dict]
+        row_list.sort(key=lambda row: row.segment.y_top_left)
         return row_list 
 
     def __repr__(self):

@@ -1,5 +1,6 @@
 from pathlib import Path
 from .pdf_as_json_model import read_pdf
+from .tesseract import read_image
 from ..dtypes import PageRDF
 
 
@@ -25,11 +26,12 @@ class FileInput:
             return self.image_reader(path)
         
 
-    def pdf_reader(self, path):
+    def pdf_reader(self, path) -> PageRDF:
         prdf = read_pdf(self.pdf_method, path)
         return prdf
 
 
-    def image_reader(self, path):
-        raise ValueError("no set Tesseract")
+    def image_reader(self, path)-> PageRDF:
+        prdf = read_image(self.image_method, path)
+        return prdf
         
