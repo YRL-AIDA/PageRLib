@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name='pagerlib'
-authors = [{name='Kopylov Daniil', email='it-daniil@yandex.ru'}]
+authors = [{name='38dunn', email='38dunn@gmail.com'}]
 
 readme = 'README.md'
 license = {file = 'LICENSE'}
@@ -29,6 +29,5 @@ dependencies = [
 
 version = '0.0.1' 
 
-[tool.setuptools]
-packages = {find = {where = ["src"]}}
-package-dir = {"pagerlib" = "src/pagerlib"}
+[tool.setuptools.packages.find]
+where = ["src"]
