@@ -4,7 +4,6 @@ from pagerlib.dtypes import ImageSegment
 import shutil
 
 def read_image(method, path):
-    print('read')
     if method == 'tesseract':
         tesseract_path = shutil.which("tesseract")
         if tesseract_path is None:
@@ -20,5 +19,4 @@ def read_image(method, path):
         page = Page(children=[image, text_region])
         prdf = PageRDF()
         prdf.data["pages"] = [page]
-        print('okak')
         return prdf

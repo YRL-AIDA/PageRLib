@@ -59,7 +59,6 @@ class PDFStructureExtractor:
         for page_num, page_layout in enumerate(extract_pages(pdf_path, laparams=self.laparams)):
             page_info = self._process_page(page_layout, page_num)
             result["pages"].append(page_info)
-        
         return result
     
     def _process_page(self, page_layout:LTPage, page_number: int) -> Dict:
@@ -95,7 +94,7 @@ class PDFStructureExtractor:
         # Обрабатываем текстовые строки
         for text_line in text_lines:
             row_info = self._process_text_line(text_line, page_layout.height)
-            if row_info and self.__is_correct_segment(row_info['segment']):
+            if row_info and self.__is_correct_segment(row_info['segment']) and len(row_info["words"])!=0:
                 page_info["rows"].append(row_info)
         
         # Обрабатываем изображения
@@ -233,7 +232,6 @@ class PDFStructureExtractor:
             # Дополнительная информация об изображении (опционально)
             if hasattr(image, 'name'):
                 image_info['image_name'] = getattr(image, 'name', '')
-            
             return image_info
             
         except Exception as e:

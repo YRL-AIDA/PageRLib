@@ -21,7 +21,6 @@ class Image2Words:
         others = []
         for r in row_list:
             if len(r['words'])==0:
-                print(r)
                 others.append(r)
             else:
                 rows.append(r)
