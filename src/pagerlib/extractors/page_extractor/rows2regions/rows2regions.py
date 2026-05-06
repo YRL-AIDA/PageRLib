@@ -4,6 +4,7 @@ from pagerlib.dtypes import Page, Region, ImageSegment
 from pagerlib.dtypes.relationship import Graph
 from ..base_page_extractor import BasePageExtractor
 import numpy as np
+import torch
 
 CLASSES = {1: 'text', 2: 'header', 3: 'text', 4: 'table', 5: 'figure', 0: 'other'}
 class Rows2Regions(BasePageExtractor):
@@ -31,7 +32,9 @@ class Rows2Regions(BasePageExtractor):
 
     def get_region(self, rows_json):
         graph_dict_torch = self.tokenizer(rows_json)
-        result = self.model(graph_dict_torch)
+        
+        with torch.no_grad():
+            result = self.model(graph_dict_torch)
         result['deleted_edges'] = result['E_pred'] < 0.5
         
         graph = graph_dict_torch['inds']

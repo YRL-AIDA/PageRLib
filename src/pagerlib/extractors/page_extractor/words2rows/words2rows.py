@@ -5,6 +5,7 @@ from pagerlib.dtypes.relationship import Graph
 from ..base_page_extractor import BasePageExtractor
 import numpy as np
 from typing import List
+import torch
 
 class Words2Rows(BasePageExtractor):
     def __init__(self, conf={}):
@@ -33,7 +34,8 @@ class Words2Rows(BasePageExtractor):
         if graph_dict_torch['N'] < 2 or len(graph_dict_torch['inds'][0]) < 2:
             return [{'words': words_json}]
 
-        result = self.words2rowsGLAM(graph_dict_torch)
+        with torch.no_grad():
+            result = self.words2rowsGLAM(graph_dict_torch)
         result['deleted_edges'] = result['E_pred'] > 0.5
         
         graph = graph_dict_torch['inds']

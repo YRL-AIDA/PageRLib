@@ -25,4 +25,5 @@ def get_load_model(path=PATH_MODEL, device='cpu'):
         "seg_k": 0.5,
     })
     model.load_state_dict(torch.load(path, weights_only=True, map_location=torch.device(device)))
+    # model.eval()
     return model
