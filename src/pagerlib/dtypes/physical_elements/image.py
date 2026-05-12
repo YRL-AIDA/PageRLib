@@ -3,6 +3,8 @@ from .base_physical_element import PhysicalElement, ImageSegment
 from .row import Row
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 class Image(PhysicalElement):
     def __init__(self, segment:ImageSegment=None, data:Dict=None, **kwargs):
@@ -41,6 +43,9 @@ class Image(PhysicalElement):
     
     def set_img(self, img_rgb):
         self.data['array'] = img_rgb
+
+    def plot(self):
+        plt.imshow(self.data['array'])
 
     @staticmethod
     def read_img(path=None):

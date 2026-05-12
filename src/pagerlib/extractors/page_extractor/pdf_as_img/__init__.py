@@ -1,0 +1,1 @@
+from .pdf_as_img import PDFIMGExtractor

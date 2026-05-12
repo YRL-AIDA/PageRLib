@@ -26,6 +26,7 @@ def read_pdf(method, path):
             pages.append(page)
         prdf = PageRDF()
         prdf.data["pages"] = pages
+        prdf.data["path"] = pdf_json["document"]
         return prdf
 
     elif method == 'precision':

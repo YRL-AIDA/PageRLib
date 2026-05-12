@@ -22,7 +22,6 @@ class PhysicalElement(ABC):
 
     def from_dict(self, dict_:Dict):
         info = dict_.copy()
-
         self.__init__(
             segment=info["segment"] if "segment" in info else None,
             children=info[self.name_children],
