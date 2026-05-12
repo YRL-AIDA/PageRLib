@@ -25,6 +25,5 @@ class FontEmbExtractor(BasePageExtractor):
                 if row.data is None:
                     row.data = {}
                 vec = row_to_vec(self.model, pil_image).numpy()
-                print(vec)
                 row.data['font_vec'] = vec
        
