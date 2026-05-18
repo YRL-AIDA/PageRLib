@@ -2,7 +2,7 @@ from typing import Dict, List
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextLine, LTTextLineHorizontal
 from pdfminer.layout import  LTChar, LAParams
-from pdfminer.layout import LTImage,  LTFigure, LTPage
+from pdfminer.layout import LTImage,  LTFigure, LTPage, LTRect
 import math
 from ..base_pdf_as_json_model import BasePDFasJsonModel
 
@@ -78,13 +78,15 @@ class PDFStructureExtractor:
         # Разделяем элементы по типам
         text_lines = []
         images = []
-        
+
         for element in elements:
             if isinstance(element, LTTextLine):
                 text_lines.append(element)
             elif isinstance(element, LTTextLineHorizontal):
                 text_lines.append(element)
             elif isinstance(element, LTImage):
+                images.append(element)
+            elif isinstance(element, LTRect):
                 images.append(element)
             elif isinstance(element, LTFigure):
                 # LTFigure может содержать изображения или графику
