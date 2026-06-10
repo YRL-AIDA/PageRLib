@@ -1,1 +1,2 @@
-from .miner_pdf_model import MinerPDFModel
+from .model import MinerPDFModel
+from .extractor import PDFStructureExtractor
