@@ -1,6 +1,8 @@
 import math
 from typing import Dict, List
 
+import numpy as np
+import cv2
 from pdfminer.layout import LTImage, LTFigure, LTCurve
 
 from . import coordinate_utils as coord
@@ -9,8 +11,9 @@ from .text_extractor import TextExtractor
 
 
 class VisualExtractor:
-    GRID_CELL_SIZE = 8
-    GRID_MAX_CELLS = 2_000_000
+    MORPH_SCALE = 2
+    MORPH_DILATE_RADIUS = 10
+    MORPH_MIN_AREA = 500
     DECO_LINE_ASPECT_RATIO = 15.0
     DECO_LINE_PAGE_SPAN = 0.5
     MERGE_OVERLAP_PAD = 2
@@ -20,103 +23,48 @@ class VisualExtractor:
     def __init__(self, debug_curves: bool = False):
         self.debug_curves = debug_curves
 
-    # ------------------------------------------------------------------
-    #  path bbox merging  (occupancy grid + BFS)
-    # ------------------------------------------------------------------
-
     def merge_path_bboxes(self, bboxes: List, page_w: int, page_h: int,
-                          cell_size: int = None) -> List:
-        if cell_size is None:
-            cell_size = self.GRID_CELL_SIZE
+                          cell_size=None, num_rows: int = 0) -> List:
         if not bboxes:
             return []
         if len(bboxes) == 1 or self.debug_curves:
             return bboxes
-        gw, gh, cell_size = self._grid_dimensions(page_w, page_h, cell_size)
-        grid = self._fill_grid(bboxes, gw, gh, cell_size, page_w, page_h)
-        return self._flood_grid_components(grid, gw, gh, cell_size)
+        return self._morphological_merge(bboxes, page_w, page_h)
 
-    @staticmethod
-    def _grid_dimensions(page_w, page_h, cell_size):
-        gw = max(1, page_w // cell_size + 1)
-        gh = max(1, page_h // cell_size + 1)
-        total = gw * gh
-        if total > VisualExtractor.GRID_MAX_CELLS:
-            cell_size = max(1, int((page_w * page_h) ** 0.5 / 1400))
-            gw = max(1, page_w // cell_size + 1)
-            gh = max(1, page_h // cell_size + 1)
-        return gw, gh, cell_size
-
-    @staticmethod
-    def _fill_grid(bboxes, gw, gh, cell_size, page_w, page_h):
-        grid = bytearray(gw * gh)
-        dilate = max(1, cell_size // 4)
-        deco_ratio = VisualExtractor.DECO_LINE_ASPECT_RATIO
-        deco_span = VisualExtractor.DECO_LINE_PAGE_SPAN
+    def _morphological_merge(self, bboxes, page_w, page_h):
+        scale = self.MORPH_SCALE
+        radius = self.MORPH_DILATE_RADIUS
+        min_area = self.MORPH_MIN_AREA
+        deco_span = self.DECO_LINE_PAGE_SPAN
+        bw = page_w * scale
+        bh = page_h * scale
+        canvas = np.zeros((bh, bw), dtype=np.uint8)
         for x0, y0, x1, y1 in bboxes:
             w = x1 - x0
             h = y1 - y0
-            if w < 2 and h < 2:
+            if w > page_w * deco_span or h > page_h * deco_span:
                 continue
-            if w > page_w * deco_span and w / max(h, 1) > deco_ratio:
+            x0_c = max(0, int(x0 * scale))
+            y0_c = max(0, int(y0 * scale))
+            x1_c = min(bw, int(x1 * scale) + 1)
+            y1_c = min(bh, int(y1 * scale) + 1)
+            if x0_c < x1_c and y0_c < y1_c:
+                canvas[y0_c:y1_c, x0_c:x1_c] = 255
+        kernel = cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE, (radius * scale * 2 + 1, radius * scale * 2 + 1))
+        canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, kernel)
+        num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(canvas)
+        result = []
+        for i in range(1, num_labels):
+            area = stats[i, cv2.CC_STAT_AREA]
+            if area < min_area:
                 continue
-            if h > page_h * deco_span and h / max(w, 1) > deco_ratio:
-                continue
-            gx0 = max(0, int((x0 - dilate) / cell_size))
-            gy0 = max(0, int((y0 - dilate) / cell_size))
-            gx1 = min(gw - 1, int((x1 + dilate) / cell_size))
-            gy1 = min(gh - 1, int((y1 + dilate) / cell_size))
-            if gx0 > gx1 or gy0 > gy1:
-                continue
-            for gy in range(gy0, gy1 + 1):
-                row_off = gy * gw
-                for gx in range(gx0, gx1 + 1):
-                    grid[row_off + gx] = 1
-        return grid
-
-    @staticmethod
-    def _flood_grid_components(grid, gw, gh, cell_size):
-        components = []
-        stack = []
-        for start_gy in range(gh):
-            row_off = start_gy * gw
-            for start_gx in range(gw):
-                if grid[row_off + start_gx] == 0:
-                    continue
-                min_cx = max_cx = start_gx
-                min_cy = max_cy = start_gy
-                stack.append((start_gx, start_gy))
-                grid[row_off + start_gx] = 0
-                while stack:
-                    cx, cy = stack.pop()
-                    if cx < min_cx:
-                        min_cx = cx
-                    elif cx > max_cx:
-                        max_cx = cx
-                    if cy < min_cy:
-                        min_cy = cy
-                    elif cy > max_cy:
-                        max_cy = cy
-                    for dx in (-1, 0, 1):
-                        nx = cx + dx
-                        if nx < 0 or nx >= gw:
-                            continue
-                        for dy in (-1, 0, 1):
-                            if dx == 0 and dy == 0:
-                                continue
-                            ny = cy + dy
-                            if ny < 0 or ny >= gh:
-                                continue
-                            if grid[ny * gw + nx]:
-                                grid[ny * gw + nx] = 0
-                                stack.append((nx, ny))
-                components.append((
-                    min_cx * cell_size,
-                    min_cy * cell_size,
-                    (max_cx + 1) * cell_size,
-                    (max_cy + 1) * cell_size,
-                ))
-        return components
+            x = stats[i, cv2.CC_STAT_LEFT] / scale
+            y = stats[i, cv2.CC_STAT_TOP] / scale
+            w = stats[i, cv2.CC_STAT_WIDTH] / scale
+            h = stats[i, cv2.CC_STAT_HEIGHT] / scale
+            result.append((x, y, x + w, y + h))
+        return result
 
     # ------------------------------------------------------------------
     #  image / figure processing

@@ -11,5 +11,7 @@ class MinerPDFModel(BasePDFasJsonModel):
         laparams = LAParams(
             line_margin=0.5, word_margin=0.1, char_margin=2.0, boxes_flow=0.5)
         debug_curves = conf.pop('debug_curves', False)
-        conf['extractor'] = PDFStructureExtractor(laparams, debug_curves=debug_curves)
+        debug_timing = conf.pop('debug_timing', False)
+        conf['extractor'] = PDFStructureExtractor(
+            laparams, debug_curves=debug_curves, debug_timing=debug_timing)
         super().__init__(conf)

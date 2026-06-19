@@ -2,15 +2,30 @@ from pdfminer.converter import PDFPageAggregator
 from pdfminer.utils import apply_matrix_pt
 
 
+class _TextOnlyAggregator(PDFPageAggregator):
+    """Processes text and images only, skipping all path rendering.
+
+    Used in phase 1 for fast text extraction.  Path bboxes are never
+    computed so that the main parse avoids per-path overhead entirely.
+    """
+
+    def paint_path(self, gstate, stroke, fill, evenodd, path):
+        pass
+
+
 class _FastPDFPageAggregator(PDFPageAggregator):
-    """Aggregator that records path bboxes for fast merging *and* creates
-    minimal layout objects so that figure/curve grouping is preserved.
+    """Aggregator that records path bboxes *and* creates minimal layout
+    objects so that figure/curve grouping is preserved.
 
     Paths are recorded by their bounding box only. Tracks figure nesting
     so that paths belonging to the same Form XObject are grouped together.
+
+    If *collect_paths* is False the aggregator behaves like
+    `_TextOnlyAggregator` but retains the figure-tracking machinery.
     """
-    def __init__(self, rsrcmgr, laparams=None):
+    def __init__(self, rsrcmgr, laparams=None, collect_paths=True):
         super().__init__(rsrcmgr, laparams=laparams)
+        self._collect_paths = collect_paths
         self._path_bboxes = []
         self._figure_bboxes = {}
         self._figure_stack = []
@@ -29,6 +44,8 @@ class _FastPDFPageAggregator(PDFPageAggregator):
             self._figure_stack.pop()
 
     def paint_path(self, gstate, stroke, fill, evenodd, path):
+        if not self._collect_paths:
+            return
         if not path:
             return
         linew = gstate.linewidth if gstate.linewidth else 1.0
