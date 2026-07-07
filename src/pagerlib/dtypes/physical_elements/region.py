@@ -13,7 +13,7 @@ class Region(PhysicalElement):
     
     @property
     def text(self):
-        return "\n".join([word.text for word in self.children])
+        return "\n".join([row.text for row in self.children])
     
     def _get_children_from_dict_list(self, dict) :
         row_list =[Row(segment=self._get_segment(dict_segment=dict_row["segment"]), 
