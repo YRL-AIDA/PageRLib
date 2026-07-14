@@ -5,11 +5,15 @@ from pagerlib.dtypes import PageRDF, Page
 from PIL import Image
 import cv2
 
-
+SIZES  = (512, 32, 16)
 class FontEmbExtractor(BasePageExtractor):
-    def __init__(self):
-        self.model = load_model()
+    def __init__(self, size=512):
+        if not size in SIZES:
+            raise Exception(f"Exists only {SIZES}")
+        self.size = size
+        self.model = load_model(size)
         super().__init__()
+        
 
     def page_extract(self, page:Page):
         

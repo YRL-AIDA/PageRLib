@@ -9,12 +9,22 @@ from PIL import Image, ImageDraw
 import json
 from pathlib import Path
 
-def load_model():
+def load_model(size):
     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
-    model.fc = nn.Linear(model.fc.in_features, 71)
-    model_path = Path(__file__).parent/'font_identifier_model_lines.pth'
-    model.load_state_dict(torch.load(model_path))
-    model.fc = nn.Identity()
+    model_path = Path(__file__).parent/f'font_identifier_model_lines_{size}.pth'
+    if size == 512:
+        model.fc = nn.Linear(model.fc.in_features, 71)
+        
+        model.load_state_dict(torch.load(model_path))
+        model.fc = nn.Identity()
+    elif size == 16 or size == 32:
+        model.fc = nn.Sequential(
+            nn.Linear(model.fc.in_features, size),
+            nn.Linear(size, 71)
+        )
+        model.load_state_dict(torch.load(model_path))
+        model.fc[-1] = nn.Identity()
+
     model.eval()
 
     return model
