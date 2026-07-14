@@ -15,16 +15,17 @@ def load_model(size):
     if size == 512:
         model.fc = nn.Linear(model.fc.in_features, 71)
         
-        model.load_state_dict(torch.load(model_path))
+        model.load_state_dict(torch.load(model_path, map_location='cpu'))
         model.fc = nn.Identity()
     elif size == 16 or size == 32:
         model.fc = nn.Sequential(
             nn.Linear(model.fc.in_features, size),
             nn.Linear(size, 71)
         )
-        model.load_state_dict(torch.load(model_path))
+        model.load_state_dict(torch.load(model_path, map_location='cpu'))
         model.fc[-1] = nn.Identity()
-
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
     model.eval()
 
     return model
@@ -63,13 +64,13 @@ def row_to_vec(model, row_image):
         )
     ])
 
-    image_tensor = data_transforms(row_image).unsqueeze(0)
+    image_tensor = data_transforms(row_image).unsqueeze(0).to(model.device)
 
     with torch.no_grad():
         vector = model(image_tensor).squeeze()
         # print(vector)
 
-    return vector
+    return vector.cpu().numpy()
 
 # def get_similar_fonts(image_bytes):
 
