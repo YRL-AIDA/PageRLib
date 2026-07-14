@@ -9,6 +9,8 @@ from PIL import Image, ImageDraw
 import json
 from pathlib import Path
 
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 def load_model(size):
     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
     model_path = Path(__file__).parent/f'font_identifier_model_lines_{size}.pth'
@@ -24,8 +26,8 @@ def load_model(size):
         )
         model.load_state_dict(torch.load(model_path, map_location='cpu'))
         model.fc[-1] = nn.Identity()
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = model.to(device)
+    
+    model = model.to(DEVICE)
     model.eval()
 
     return model
@@ -64,13 +66,13 @@ def row_to_vec(model, row_image):
         )
     ])
 
-    image_tensor = data_transforms(row_image).unsqueeze(0).to(model.device)
+    image_tensor = data_transforms(row_image).unsqueeze(0).to(DEVICE)
 
     with torch.no_grad():
         vector = model(image_tensor).squeeze()
         # print(vector)
 
-    return vector.cpu().numpy()
+    return vector.cpu()
 
 # def get_similar_fonts(image_bytes):
 
