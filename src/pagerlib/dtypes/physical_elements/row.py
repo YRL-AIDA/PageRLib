@@ -23,6 +23,8 @@ class Row(PhysicalElement):
             }
             if "font" in word_json:
                 data["font"] = word_json["font"]
+            if "conf" in word_json:
+                data["confidence"] = word_json["conf"]
             word_list.append(Word(segment=self._get_segment(word_json["segment"]), data=data)) 
         word_list.sort(key=lambda x: x.segment.x_top_left)       
         return word_list 

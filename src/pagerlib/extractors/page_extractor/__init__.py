@@ -3,3 +3,4 @@ from .words2rows import Words2Rows
 from .merge_regions import MergeRegion
 from .pdf_as_img import PDFIMGExtractor
 from .font_emb_extractor import FontEmbExtractor
+from .images2regions import Images2RegionsExtractor

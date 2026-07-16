@@ -1,1 +1,2 @@
+from pagerlib.extractors.page_extractor.images2regions.image2words import Image2Words
 from .image_read import read_image

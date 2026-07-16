@@ -15,7 +15,11 @@ class Word(PhysicalElement):
     @property
     def text(self):
         return self.data["text"] if "text" in self.data else ""
-    
+
+    @property
+    def confidence(self) -> float | None:
+        return self.data.get("confidence", None) if self.data else None
+
     def _get_children_from_dict_list(self, dict) :
         # Нет посимвольной обработки
         return None 
