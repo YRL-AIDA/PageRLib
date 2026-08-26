@@ -1,0 +1,70 @@
+Create Trainer
+T: 2026-08-12 03:37:41.258020
+
+            DATASET INFO:
+            count row: 335703
+            cache_only: False
+            data_fraction: 1.0
+            ram_cache: False (loaded=False)
+            first: dict_keys(['N', 'X', 'Y', 'inds', 'true_edges', 'true_nodes', 'sp_A', 'file_name'])
+            	 A:torch.Size([74, 74])
+            	 nodes_feature:torch.Size([74, 53])
+            	 edges_feature:torch.Size([96, 4])
+            	 true_edges:torch.Size([96])
+            end:dict_keys(['N', 'X', 'Y', 'inds', 'true_edges', 'true_nodes', 'sp_A', 'file_name'])
+            	 A:torch.Size([27, 27])
+            	 nodes_feature:torch.Size([27, 53])
+            	 edges_feature:torch.Size([37, 4])
+            	 true_edges:torch.Size([37])
+        node_block:	{'linear_pred': [{'in': 53, 'out': 256, 'activation': 'gelu'}, {'in': 256, 'out': 128, 'activation': 'gelu'}], 'gnn': [('tag', {'batch_norm': True, 'concat': True, 'in': 128, 'in_gnn': 128, 'out_gnn': 128, 'gnn_activation': 'gelu', 'activation': 'gelu', 'K': 3}), ('tag', {'batch_norm': False, 'concat': True, 'in': 256, 'in_gnn': 128, 'out_gnn': 128, 'gnn_activation': 'gelu', 'activation': 'gelu', 'K': 3}), ('tag', {'batch_norm': False, 'concat': True, 'in': 384, 'in_gnn': 128, 'out_gnn': 128, 'gnn_activation': 'gelu', 'activation': 'gelu', 'K': 3})]}
+node_classifier_block:	{'linear_post': [{'in': 512, 'out': 256, 'activation': 'gelu'}, {'in': 256, 'out': 128, 'activation': 'gelu'}, {'in': 128, 'out': 6, 'activation': 'none'}]}
+edge_classifier_block:	{'linear_post': [{'in': 366, 'out': 256, 'activation': 'gelu'}, {'in': 256, 'out': 64, 'activation': 'gelu'}, {'in': 64, 'out': 1, 'activation': 'none'}]}
+epochs:	30
+batch_size:	64
+learning_rate:	0.001
+seg_k:	0.5
+loss_params:	{'edge_coef': 0.7, 'node_coef': 0.3, 'node_imbalance': [0.1453900933265686, 0.003990805242210627, 0.29829883575439453, 0.20904308557510376, 0.026494385674595833, 0.31678277254104614], 'edge_imbalance': 0.47004158622660885}
+seed:	0
+early_stopping_patience:	3
+post_node_block:	{'linear_pred': [{'in': 512, 'out': 256, 'activation': 'gelu'}, {'in': 256, 'out': 256, 'activation': 'gelu'}, {'in': 256, 'out': 128, 'activation': 'gelu'}], 'gnn': [('tag', {'batch_norm': True, 'concat': True, 'in': 128, 'in_gnn': 128, 'out_gnn': 128, 'gnn_activation': 'gelu', 'activation': 'gelu', 'K': 3}), ('tag', {'batch_norm': False, 'concat': True, 'in': 256, 'in_gnn': 128, 'out_gnn': 128, 'gnn_activation': 'gelu', 'activation': 'gelu', 'K': 3}), ('tag', {'batch_norm': False, 'concat': True, 'in': 384, 'in_gnn': 128, 'out_gnn': 128, 'gnn_activation': 'gelu', 'activation': 'gelu', 'K': 3})], 'linear_post': [{'in': 512, 'out': 256, 'activation': 'gelu'}, {'in': 256, 'out': 128, 'activation': 'gelu'}, {'in': 128, 'out': 128, 'activation': 'gelu'}]}
+restart_num:	None
+EPOCH #0	 0.03929826 (VAL: 0.05577814)
+Best model saved (val loss: 0.05577814)
+EPOCH #1	 0.02209513 (VAL: 0.05905807)
+EPOCH #2	 0.01921089 (VAL: 0.05462558)
+Best model saved (val loss: 0.05462558)
+EPOCH #3	 0.01753706 (VAL: 0.05216703)
+Best model saved (val loss: 0.05216703)
+EPOCH #4	 0.01645459 (VAL: 0.06021541)
+EPOCH #5	 0.01554151 (VAL: 0.05066551)
+Best model saved (val loss: 0.05066551)
+EPOCH #6	 0.01516395 (VAL: 0.05440649)
+EPOCH #7	 0.01483776 (VAL: 0.05673451)
+EPOCH #8	 0.01404865 (VAL: 0.06306709)
+Early stopping at epoch 9 (no improvement for 3 epochs)
+Loaded best model (val loss: 0.05066551)
+Время обучения: 107950.85 сек
+
+"threshold_0.5 (0)": 0.000631597942795272,
+"threshold_0.95 (0)": 0.000631597942795272, 
+"threshold_0.5 (1)": 0.8462431111822977, 
+"threshold_0.95 (1)": 0.8376038395130023, 
+"threshold_0.5 (2)": 0.9304662443362242, 
+"threshold_0.95 (2)": 0.9280807253710146, 
+"threshold_0.5 (3)": 0.8117766081476995, 
+"threshold_0.95 (3)": 0.7889236331347139, 
+"threshold_0.5 (4)": 0.9010864019435706, 
+"threshold_0.95 (4)": 0.8714744642607135, 
+"threshold_0.5 (5)": 0.7483977595183947, 
+"threshold_0.95 (5)": 0.7398348095406654, 
+"threshold_0.5 (all)": 0.7870825299589278, 
+"threshold_0.95 (all)": 0.7668294982752982, 
+
+"mAP (all)": 0.49379780888557434, 
+"mAP (seg)": 0.7185689210891724, 
+"mAP (other)": -1.0, 
+"mAP (text)": 0.7113601565361023, 
+"mAP (title)": 0.5987048745155334, 
+"mAP (list)": 0.26249033212661743, 
+"mAP (table)": 0.3917272984981537, 
+"mAP (figure)": 0.5047063231468201

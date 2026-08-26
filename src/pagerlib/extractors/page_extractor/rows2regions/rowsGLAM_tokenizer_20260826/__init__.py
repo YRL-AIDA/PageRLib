@@ -1,0 +1,1 @@
+from .rowsGLAM_tokenizer import FontEmbRowGLAMTokenizer as RowGLAMTokenizer

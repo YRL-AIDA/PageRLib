@@ -1,6 +1,6 @@
-from .rows2region_glam_20260225 import get_load_model
-from .rowsGLAM_tokenizer_20260225 import RowGLAMTokenizer
-from pagerlib.dtypes import Page, Region, ImageSegment
+from .rows2region_glam_20260826 import get_load_model
+from .rowsGLAM_tokenizer_20260826 import RowGLAMTokenizer
+from pagerlib.dtypes import Page, Region, ImageSegment, Image
 from pagerlib.dtypes.relationship import Graph
 from ..base_page_extractor import BasePageExtractor
 import numpy as np
@@ -13,8 +13,14 @@ class Rows2Regions(BasePageExtractor):
         self.tokenizer = RowGLAMTokenizer()
 
     def page_extract(self, page:Page):
-        text_regions = [region for region in page.children if region.children is not None]
-        no_text_regions = [region for region in page.children if region.children is None]
+        if not isinstance(page.children[0], Image):
+            raise Exception('USE: ' \
+            'from pagerlib.extractors.page_extractor import PDFIMGExtractor' \
+            'pdf_add_img.extract(prdf)')
+        pdf_as_img_region = page.children[0]
+        pdf_img = pdf_as_img_region.data['array']
+        text_regions = [region for region in page.children[1:] if region.children is not None]
+        no_text_regions = [region for region in page.children[1:] if region.children is None]
         
         rows = [{"text": row.text,
                  "segment": row.segment.get_segment_2p(),
@@ -26,12 +32,12 @@ class Rows2Regions(BasePageExtractor):
         elif count_rows == 1:
             region_list = [Region(children=rows, data={'label': CLASSES[0]})]
         else:
-            region_list = self.get_region(rows)
+            region_list = self.get_region(rows,pdf_img)
         page.children = no_text_regions+region_list
 
 
-    def get_region(self, rows_json):
-        graph_dict_torch = self.tokenizer(rows_json)
+    def get_region(self, rows_json, pdf_img):
+        graph_dict_torch = self.tokenizer(rows_json, pdf_img)
         
         with torch.no_grad():
             result = self.model(graph_dict_torch)
