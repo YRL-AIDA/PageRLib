@@ -104,7 +104,7 @@ class RowGLAMTokenizer():
 
     def get_A(self, rows_json):
         
-        edges = graph_creat([ImageSegment(dict_2p=row_json['segment']) for row_json in rows_json])
+        edges = graph_creat([ImageSegment(dict_p_size=row_json['segment']) for row_json in rows_json])
 
         A1, A2 = [], []
         for a1, a2 in edges:
@@ -121,7 +121,7 @@ class RowGLAMTokenizer():
             return [[]]
         page_h, page_w = pdf_img.shape[:2]
         
-        segs = [ImageSegment(dict_2p=row_json['segment']) for row_json in rows_json]
+        segs = [ImageSegment(dict_p_size=row_json['segment']) for row_json in rows_json]
         page_x_min = min([seg.x_top_left for seg in segs])
         page_y_min = min([seg.y_top_left for seg in segs])
         page = [page_h, page_w, page_x_min, page_y_min]
@@ -160,8 +160,8 @@ class RowGLAMTokenizer():
     def get_edge_features(self, A, rows_json, pdf_img):
         edges_featch = []
         for i, j in zip(A[0], A[1]):
-            r1 = ImageSegment(dict_2p= rows_json[i]['segment'])
-            r2 = ImageSegment(dict_2p= rows_json[j]['segment'])
+            r1 = ImageSegment(dict_p_size= rows_json[i]['segment'])
+            r2 = ImageSegment(dict_p_size= rows_json[j]['segment'])
             x1, y1 = r1.get_center()
             x2, y2 = r2.get_center()
 
@@ -196,7 +196,7 @@ class RowGLAMTokenizer():
         text_size = len(text)
         if text_size == 0:
             return [0, 0, 0]
-        seg = ImageSegment(dict_2p=row['segment'])
+        seg = ImageSegment(dict_p_size=row['segment'])
         m = seg.width/seg.height
         digit_count = sum(char.isdigit() for char in text)
         return [text_size/m, digit_count/text_size, np.log(1+len(text))]
@@ -301,7 +301,7 @@ class FontEmbRowGLAMTokenizer(FontRowGlAMTokenizer):
         return self._model
 
     def get_vec_font(self, row, pdf_img):
-        seg = ImageSegment(dict_2p=row['segment'])
+        seg = ImageSegment(dict_p_size=row['segment'])
         row_img = seg.get_segment_from_img(pdf_img)
         row_cv2 = cv2.cvtColor(row_img, cv2.COLOR_RGB2GRAY)
         pil_image = Image.fromarray(row_cv2)
