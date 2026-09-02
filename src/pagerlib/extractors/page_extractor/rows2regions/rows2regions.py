@@ -6,7 +6,7 @@ from ..base_page_extractor import BasePageExtractor
 import numpy as np
 import torch
 
-CLASSES = {1: 'text', 2: 'header', 3: 'text', 4: 'table', 5: 'figure', 0: 'other'}
+CLASSES = {1: 'text', 2: 'header', 3: 'list', 4: 'table', 5: 'figure', 0: 'other'}
 class Rows2Regions(BasePageExtractor):
     def __init__(self):
         self.model = get_load_model()
