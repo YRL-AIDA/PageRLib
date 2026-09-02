@@ -77,7 +77,7 @@ class Rows2Regions(BasePageExtractor):
             if len(clean_rows) == 0:     
                 regions.append(Image(segment=segment, data={'label': 'figure'}))
             else:
-                regions.append(Region(segment=segment, children=clean_ro={'label': lable}))
+                regions.append(Region(segment=segment, children=clean_rows, data={'label': lable}))
         return regions
 
     def fix_row_this_image(self, rows, image_rows):
