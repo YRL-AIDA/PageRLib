@@ -20,6 +20,6 @@ class Section:
     def to_dict(self):
         return {
             "level": self.level,
-            "title": self.title.to_dict(),
+            "title": self.title.to_dict() if self.title else None,
             "children": [c.to_dict() for c in self.children]
         }

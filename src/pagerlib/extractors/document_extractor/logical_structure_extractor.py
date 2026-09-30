@@ -126,7 +126,7 @@ class LogicalStructureExtractor(BaseDocumentExtractor):
         
             stack.append((sec, hi))
 
-        return root.children
+        return root
 
     @staticmethod
     def _collect_all_regions(prdf: PageRDF) -> List[tuple]:
@@ -136,6 +136,7 @@ class LogicalStructureExtractor(BaseDocumentExtractor):
             if page.children is None:
                 continue
             for region in page.children:
+                region.data['page_num'] = page.get_number()
                 if isinstance(region, Image):
                     continue
                 regions.append(region)

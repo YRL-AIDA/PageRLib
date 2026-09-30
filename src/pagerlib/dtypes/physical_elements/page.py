@@ -11,6 +11,13 @@ class Page(PhysicalElement):
     def get_none():
         im = ImageSegment(0,0,1,1)
         return Page([], im, None)
+
+    # TODO: надо коректно оформить логику
+    def set_number(self, num:int):
+        self.data["page_num"] = num
+
+    def get_number(self):
+        return self.data["page_num"]
     
     @property
     def text(self):

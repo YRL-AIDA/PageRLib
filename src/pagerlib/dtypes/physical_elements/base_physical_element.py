@@ -16,7 +16,7 @@ class PhysicalElement(ABC):
             segment = self._get_segment(segment)
         self.segment: ImageSegment = segment
         self.children = children
-        self.data = data
+        self.data = {} if data is None else data
         self.name_children = name_children
 
 

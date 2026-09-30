@@ -10,7 +10,7 @@ def read_pdf(method, path):
         miner.extract()
         pdf_json = miner.to_dict()
         pages = []
-        for page_json in pdf_json['pages']:
+        for i, page_json in enumerate(pdf_json['pages']):
             h, w = page_json["height"], page_json["width"]
             no_text_regions = [Image(ImageSegment(dict_p_size=image['segment']), {}) for image in  page_json['images']]
             text_regions = []
@@ -19,10 +19,10 @@ def read_pdf(method, path):
                 reg.from_dict({"rows":page_json["rows"]}) 
                 text_regions.append(reg)   
             regions = no_text_regions + text_regions
-            if len(regions) == 0:
+            if len(regions) == 0: # TODO: Возможно надо создавать пустые !!!
                 continue
             page = Page(segment=ImageSegment(0, 0, w, h), children=regions)
-            
+            page.set_number(i)
             pages.append(page)
         prdf = PageRDF()
         prdf.data["pages"] = pages
