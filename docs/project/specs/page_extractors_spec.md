@@ -205,6 +205,8 @@ CLASSES = {
    - ≥ 2 строк → запуск GNN-конвейера `self.get_region(rows_json)`
 4. **Пересборка:** `page.children = no_text_regions + region_list`
 
+> **Схема слов не имеет значения для Rows2Regions (ADR-005).** `fix_row_this_image` / `get_rows` не требует поля `font` в словах: строки собираются как `{"text", "segment", "words": [word.to_dict() ...]}` (вложенная схема `{"segment", "data"}`), а нормализация в `Row` выполняется `Row._get_children_from_dict_list`, которая одинаково обрабатывает и PDF-слова (`data["font"]`), и OCR-слова (`data["confidence"]` без `font`). Шрифтовой признак для модели берётся **из пиксельного патча строки** (`FontEmbRowGLAMTokenizer.get_vec_font`, строки 303–308, защита `_get_vec_font_safe`, 275–280), а не из `word.data["font"]`. Ручная пересборка слов с чтением `w['data']['font']` из кода удалена (этап 00002).
+
 #### GNN-конвейер `get_region(rows_json)`
 
 ```
@@ -390,6 +392,8 @@ PIL Image (Grayscale)
 | 10–11 | `super_vec` | Регистр: `[is_all_uppercase, is_title_case]` |
 | 12 | `list_ind_vec` | Маркер списка: 1 если текст совпадает с одним из 25+ regex-паттернов |
 | 13–14 | `heuristics_vec` | `[len(text) / (width/height), digit_count / len(text)]` |
+
+> **Примечание (ADR-005):** токенизаторы **не читают** font-метаданные слова. Текст берётся безопасно: `w.get('data').get('text', '')` (строки 128, 195 `rowsGLAM_tokenizer.py`). Активный `FontEmbRowGLAMTokenizer` добавляет к базовым признакам шрифтовой вектор, полученный из **пиксельного изображения строки** (`get_vec_font`, 303–308), обёрнутый в `_get_vec_font_safe` (275–280: `try/except → нули`). Поэтому отсутствие `font` в словах (OCR-путь) не влияет на признаки узлов.
 
 #### Признаки рёбер (4-dim)
 

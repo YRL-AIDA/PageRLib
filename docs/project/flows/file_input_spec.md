@@ -120,6 +120,7 @@ class Image2Words:
         "words": [
             {
                 "text": "Hello",
+                "conf": 87.0,           # уверенность Tesseract (0..100), float
                 "segment": {
                     "x_top_left": int,  # x-координата левого верхнего угла (пиксели)
                     "y_top_left": int,  # y-координата левого верхнего угла (пиксели)
@@ -140,7 +141,9 @@ class Image2Words:
 ]
 ```
 
-**Важно:** в текущей реализации `confidence` (уверенность OCR) не извлекается. Это запланировано в `Images2RegionsExtractor` (см. спецификацию image_extractor).
+**Важно (контракт схемы слова, ADR-005):** OCR-слова эмитят только `{"text", "conf", "segment"}` — ключа `font` у них **нет** (шрифт физически не существует, ничего не подставляется). При нормализации в `Row._get_children_from_dict_list` ключ `conf` переносится в `Word.data["confidence"]`. Это принципиальное отличие от PDF-схемы (`TextExtractor`), где слово содержит `font` и не содержит `confidence`.
+
+> **Расположение класса:** `Image2Words` физически находится в `src/pagerlib/extractors/page_extractor/images2regions/image2words.py` и реэкспортируется через `src/pagerlib/file_input/tesseract/__init__.py` (модуль `pagerlib.file_input.tesseract`).
 
 ---
 
@@ -369,6 +372,8 @@ def extract_path_bboxes_from_bytes(content_bytes: bytes) -> List[Tuple[float, ..
     ]
 }
 ```
+
+> **Примечание (контракт схемы слова, ADR-005):** `TextExtractor` — PDF-продюсер слов: каждое слово содержит `font` (`{"fontname", "fontsize", "is_normal"}` из первого `LTChar`). В отличие от OCR-продюсера (`Image2Words` → `{"text", "conf", "segment"}` без `font`), здесь `confidence` не эмитится. Оба пути приводятся к канонической схеме `Word.data` (`text` обязателен, `font` — только PDF, `confidence` — только OCR) единой точкой нормализации `Row._get_children_from_dict_list`.
 
 ### 4.3 `_extract_words(text_line, page_height) -> List[Dict]`
 
@@ -665,7 +670,8 @@ read_image("tesseract", path)
   │       └─ size_filter(): удаление строк с width<2 или height<2
   │
   ├─ Region(children=rows)
-  │   └─ Каждый row → Row(children=[Word(segment, data={"text": ...})])
+  │   └─ Каждый row → Row(children=[Word(segment, data={"text": ..., "confidence": float})])
+  │       (confidence — из conf Tesseract; font отсутствует — ADR-005)
   │
   ├─ Page(children=[image, text_region])
   │

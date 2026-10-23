@@ -82,10 +82,11 @@ class Rows2Regions(BasePageExtractor):
 
     def fix_row_this_image(self, rows, image_rows):
         def get_rows(dict_row):
-            dict_row['words'] = [{"segment": w['segment'],
-                                 "text": w['data']['text'],
-                                 "font": w['data']['font']} for w in dict_row['words']] if 'words' in dict_row else []
-           
+            # Слова не пересобираются вручную: и data-вложенную схему
+            # (word.to_dict()), и плоскую legacy-схему нормализует
+            # Row._get_children_from_dict_list. Дефолт [] обязателен:
+            # image_rows не содержат ключа 'words'.
+            dict_row.setdefault('words', [])
             row = Row.get_none()
             row.from_dict(dict_row)
             return row

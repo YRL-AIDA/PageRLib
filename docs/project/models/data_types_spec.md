@@ -283,14 +283,14 @@ ImageSegment(dict_p_size={"x_top_left": 10, "y_top_left": 20, "width": 90, "heig
 | Метод | Сигнатура | Описание |
 |-------|-----------|----------|
 | `get_none` | `() -> Row` | Статический метод. Создаёт пустую строку-заглушку |
-| `_get_children_from_dict_list` | `(dict) -> List[Word]` | Десериализует список словарей в `List[Word]`. Извлекает `data` и `font` из JSON-представления. Сортирует по `x_top_left` (слева направо) |
+| `_get_children_from_dict_list` | `(dict) -> List[Word]` | Десериализует список словарей в `List[Word]`. **Единая точка нормализации схемы слова** (контракт, ADR-005): поддерживает вложенную (`{"segment", "data"}` — вывод `Word.to_dict()`) и плоскую (`{"segment", "text"}`) схемы; опционально переносит `font` → `data["font"]` (PDF) и `conf` → `data["confidence"]` (OCR); отсутствующие опциональные ключи в `data` не добавляются. Сортирует по `x_top_left` (слева направо) |
 
 ---
 
 ### 2.6. Word
 
 **Назначение:**  
-Листовой элемент — одно слово (токен) со связанным текстом, координатами bounding box, шрифтом и (в перспективе) confidence.
+Листовой элемент — одно слово (токен) со связанным текстом, координатами bounding box, шрифтом и confidence (только для OCR-слов).
 
 **Файл:** `src/pagerlib/dtypes/physical_elements/word.py`  
 **Наследование:** `PhysicalElement`
@@ -307,14 +307,15 @@ ImageSegment(dict_p_size={"x_top_left": 10, "y_top_left": 20, "width": 90, "heig
 | Ключ | Тип | Обязательность | Когда заполняется | Описание |
 |------|-----|----------------|-------------------|----------|
 | `data["text"]` | `str` | обязателен | `FileInput` (PDF Miner / Tesseract) | Текстовое содержимое слова |
-| `data["font"]` | `Dict` | опционально | `FileInput` (PDF Miner) | Словарь с метаданными шрифта: `name`, `fontname`, `size`, `fontsize`, `height`, `width`, `is_bold`, `bold`, `italic`, `is_italic` |
-| `data["confidence"]` | `float` | опционально | **планируется** | Уверенность OCR в распознавании слова (0.0 – 1.0) |
+| `data["font"]` | `Dict` | опционально, **только PDF** | `FileInput` — PDF Miner (`TextExtractor._create_word`) | Словарь с метаданными шрифта. Продюсер пишет `{"fontname", "fontsize", "is_normal"}`; `Font` умеет читать также `name`, `size`, `height`, `width`, `is_bold`, `bold`, `italic`, `is_italic`. Для OCR-слов ключ **отсутствует** (шрифт физически не существует) |
+| `data["confidence"]` | `float` | опционально, **только OCR** | `Image2Words` (Tesseract; сырой ключ `conf`, ADR-004) | Уверенность OCR в распознавании слова (0..100). Переносится из `conf` при нормализации в `Row._get_children_from_dict_list`. Для PDF-слов ключ **отсутствует** |
 
 #### Свойства
 
 | Свойство | Тип | Реализация |
 |----------|-----|------------|
 | `text` | `str` | `self.data["text"]` если ключ есть, иначе `""` |
+| `confidence` | `float \| None` | `self.data.get("confidence", None)` если `data` есть, иначе `None`. Заполняется только для OCR-слов |
 
 #### Методы
 
@@ -328,16 +329,31 @@ ImageSegment(dict_p_size={"x_top_left": 10, "y_top_left": 20, "width": 90, "heig
 - `segment` определён и соответствует bounding box слова на странице
 
 #### Формат font в data
+
+**Формат продюсера (что лежит в `Word.data["font"]`)** — пишется `TextExtractor` из первого `LTChar` слова:
+
 ```json
 {
     "font": {
-        "name": "TimesNewRoman",
-        "size": 12.0,
-        "width": 0.5,
-        "italic": 0.0
+        "fontname": "Times-Bold",
+        "fontsize": 14.0,
+        "is_normal": true
     }
 }
 ```
+
+**Нормализованный формат `Font.to_dict()`** (используется при сериализации dtype `Font`):
+
+```json
+{
+    "name": "TimesNewRoman",
+    "size": 12.0,
+    "width": 0.5,
+    "italic": 0.0
+}
+```
+
+> **Контракт схемы `Word.data` (ADR-005):** `text` — обязателен; `font` — опционален и только для PDF; `confidence` — опционален и только для OCR. Для OCR-слов ключ `font` **отсутствует** (не подставляется `{}`). Единая точка нормализации — `Row._get_children_from_dict_list`; продюсеры эмитят только свои поля.
 
 ---
 
@@ -646,6 +662,10 @@ LogicalStructureExtractor().extract(prdf)
 
 ### 4.3. Word
 - `data["text"]` обязательно для осмысленного слова (текст может быть пустым только для слов-заглушек)
+- `data["font"]` — **опционально и только для PDF** (`TextExtractor`); для OCR-слов ключ отсутствует (ADR-005)
+- `data["confidence"]` — **опционально и только для OCR** (`Image2Words`, 0..100); для PDF-слов ключ отсутствует
+- Единая точка нормализации схемы слова — `Row._get_children_from_dict_list` (`row.py`); продюсеры схему не «выравнивают»
+- Потребителям запрещён жёсткий доступ `dict["font"]`/`dict["confidence"]` к опциональным полям — только `.get()` / `"key" in dict`
 - `name_children = None`, `children = None` — листовой элемент
 
 ### 4.4. Image
@@ -725,7 +745,7 @@ Page → Region → Row → Word
                           (font_vec)
                                |
                            List[Word]
-                          (text, font, confidence*)
+                          (text, font, confidence)
 
-*планируется
+*confidence — только для OCR-слов (ADR-005); font — только для PDF
 ```

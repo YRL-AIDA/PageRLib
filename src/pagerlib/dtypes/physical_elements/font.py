@@ -21,22 +21,20 @@ class Font:
         if 'width' in dict_font:
             self.width = dict_font['width']
         elif 'is_bold' in dict_font:
-            self.width = 1.0 if dict_font['is_bold'] else 0.5  
-        elif 'bold' in dict_font['fontname'].lower():
+            self.width = 1.0 if dict_font['is_bold'] else 0.5
+        elif 'fontname' in dict_font and 'bold' in dict_font['fontname'].lower():
             self.width = 1.0
-        else:
-            self.width = 0.0
+        # иначе остаётся дефолт из __init__ (0.5)
         
 
     def set_italic(self, dict_font):
         if 'italic' in dict_font:
             self.italic = dict_font['italic']
         elif 'is_italic' in dict_font:
-            self.italic = 1.0 if dict_font['is_italic'] else 0.5  
-        elif 'italic' in dict_font['fontname'].lower():
+            self.italic = 1.0 if dict_font['is_italic'] else 0.5
+        elif 'fontname' in dict_font and 'italic' in dict_font['fontname'].lower():
             self.italic = 1.0
-        else:
-            self.italic = 0.0
+        # иначе остаётся дефолт из __init__ (0.0)
 
     def set_size(self, dict_font):
         if 'size' in dict_font:
